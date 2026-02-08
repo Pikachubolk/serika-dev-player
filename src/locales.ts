@@ -13,6 +13,9 @@ export interface Translations {
   playbackSpeed: string;
   settings: string;
   loading: string;
+  skipForward: string;
+  skipBackward: string;
+  keyboardShortcuts: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -30,7 +33,10 @@ export const translations: Record<string, Translations> = {
     noSubtitles: 'No Subtitles',
     playbackSpeed: 'Playback Speed',
     settings: 'Settings',
-    loading: 'Loading...'
+    loading: 'Loading...',
+    skipForward: 'Skip forward 10 seconds',
+    skipBackward: 'Skip backward 10 seconds',
+    keyboardShortcuts: 'Keyboard shortcuts available'
   },
   es: {
     play: 'Reproducir',
@@ -46,7 +52,10 @@ export const translations: Record<string, Translations> = {
     noSubtitles: 'Sin subtítulos',
     playbackSpeed: 'Velocidad de reproducción',
     settings: 'Configuración',
-    loading: 'Cargando...'
+    loading: 'Cargando...',
+    skipForward: 'Avanzar 10 segundos',
+    skipBackward: 'Retroceder 10 segundos',
+    keyboardShortcuts: 'Atajos de teclado disponibles'
   },
   fr: {
     play: 'Lire',
@@ -62,7 +71,10 @@ export const translations: Record<string, Translations> = {
     noSubtitles: 'Pas de sous-titres',
     playbackSpeed: 'Vitesse de lecture',
     settings: 'Paramètres',
-    loading: 'Chargement...'
+    loading: 'Chargement...',
+    skipForward: 'Avancer de 10 secondes',
+    skipBackward: 'Reculer de 10 secondes',
+    keyboardShortcuts: 'Raccourcis clavier disponibles'
   },
   de: {
     play: 'Abspielen',
@@ -78,7 +90,10 @@ export const translations: Record<string, Translations> = {
     noSubtitles: 'Keine Untertitel',
     playbackSpeed: 'Wiedergabegeschwindigkeit',
     settings: 'Einstellungen',
-    loading: 'Laden...'
+    loading: 'Laden...',
+    skipForward: '10 Sekunden vorspulen',
+    skipBackward: '10 Sekunden zurückspulen',
+    keyboardShortcuts: 'Tastenkürzel verfügbar'
   },
   nl: {
     play: 'Afspelen',
@@ -94,7 +109,10 @@ export const translations: Record<string, Translations> = {
     noSubtitles: 'Geen ondertitels',
     playbackSpeed: 'Afspeelsnelheid',
     settings: 'Instellingen',
-    loading: 'Laden...'
+    loading: 'Laden...',
+    skipForward: '10 seconden vooruitspoelen',
+    skipBackward: '10 seconden terugspoelen',
+    keyboardShortcuts: 'Sneltoetsen beschikbaar'
   }
 };
 
