@@ -137,7 +137,8 @@ const parseASSWithStyles = (assContent: string): SubtitleCue[] => {
       text: parsed.text,
       lines: parsed.lines,
       alignment: event.alignment ?? 'center',
-      verticalAlign: event.verticalAlign ?? 'bottom'
+      verticalAlign: event.verticalAlign ?? 'bottom',
+      noBackground: true
     };
   });
 };
@@ -174,7 +175,8 @@ const parseASSStyles = (assContent: string): Map<string, SubtitleStyle> => {
       textDecoration: buildTextDecoration(
         isASSFlag(readField(values, fields, 'underline')),
         isASSFlag(readField(values, fields, 'strikeout'))
-      )
+      ),
+      transform: `rotate(${-(parseFloat(readField(values, fields, 'angle') || '0'))}deg) scale(${(parseFloat(readField(values, fields, 'scalex') || '100')) / 100}, ${(parseFloat(readField(values, fields, 'scaley') || '100')) / 100})`
     });
   }
 
@@ -285,11 +287,43 @@ const applyASSOverride = (style: SubtitleStyle, overrideBlock: string): Subtitle
   if (/\\u1/.test(tags)) next.textDecoration = buildTextDecoration(true, next.textDecoration?.includes('line-through') ?? false);
   if (/\\s1/.test(tags)) next.textDecoration = buildTextDecoration(next.textDecoration?.includes('underline') ?? false, true);
 
+  if (/\\s1/.test(tags)) next.textDecoration = buildTextDecoration(next.textDecoration?.includes('underline') ?? false, true);
+
   const colorTag = tags.match(/\\c&H([0-9A-Fa-f]{6})&/);
   if (colorTag) next.color = assColorToCss(`&H${colorTag[1]}&`);
 
   const sizeTag = tags.match(/\\fs(\d+(?:\.\d+)?)/);
   if (sizeTag) next.fontSize = `${sizeTag[1]}px`;
+
+  // Transforms
+  const transforms: string[] = [];
+
+  // Rotation
+  const frz = tags.match(/\\frz(-?\d+(?:\.\d+)?)/);
+  const frx = tags.match(/\\frx(-?\d+(?:\.\d+)?)/);
+  const fry = tags.match(/\\fry(-?\d+(?:\.\d+)?)/);
+
+  if (frz) transforms.push(`rotateZ(${-parseFloat(frz[1])}deg)`);
+  if (frx) transforms.push(`rotateX(${parseFloat(frx[1])}deg)`);
+  if (fry) transforms.push(`rotateY(${parseFloat(fry[1])}deg)`);
+
+  // Scale
+  const fscx = tags.match(/\\fscx(\d+(?:\.\d+)?)/);
+  const fscy = tags.match(/\\fscy(\d+(?:\.\d+)?)/);
+
+  if (fscx || fscy) {
+    const sx = fscx ? parseFloat(fscx[1]) / 100 : 1;
+    const sy = fscy ? parseFloat(fscy[1]) / 100 : 1;
+    transforms.push(`scale(${sx}, ${sy})`);
+  }
+
+  if (transforms.length > 0) {
+    // If we have overrides, we likely want to replace the base transform or append?
+    // Appending works for composition.
+    // Ensure display is inline-block so transforms work on spans
+    next.display = 'inline-block';
+    next.transform = transforms.join(' ');
+  }
 
   return next;
 };

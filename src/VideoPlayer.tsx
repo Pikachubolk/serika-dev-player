@@ -588,7 +588,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
         {currentSubtitleCue && (
           <div
-            className={`serika-video-player-subtitle-display serika-video-player-subtitle-align-${currentSubtitleCue.alignment ?? 'center'} serika-video-player-subtitle-vertical-${currentSubtitleCue.verticalAlign ?? 'bottom'}`}
+            className={`serika-video-player-subtitle-display ${currentSubtitleCue.noBackground ? 'serika-video-player-subtitle-no-background' : ''} serika-video-player-subtitle-align-${currentSubtitleCue.alignment ?? 'center'} serika-video-player-subtitle-vertical-${currentSubtitleCue.verticalAlign ?? 'bottom'}`}
           >
             {(currentSubtitleCue.lines && currentSubtitleCue.lines.length > 0
               ? currentSubtitleCue.lines

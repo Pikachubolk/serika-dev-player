@@ -47,11 +47,11 @@ export const parseASS = (assContent: string): SubtitleCue[] => {
   const lines = assContent.split('\n');
   const sections: Record<string, string[]> = {};
   let currentSection = '';
-  
+
   // Parse sections
   for (const line of lines) {
     const trimmedLine = line.trim();
-    
+
     if (trimmedLine.startsWith('[') && trimmedLine.endsWith(']')) {
       currentSection = trimmedLine.slice(1, -1).toLowerCase();
       sections[currentSection] = [];
@@ -59,21 +59,50 @@ export const parseASS = (assContent: string): SubtitleCue[] => {
       sections[currentSection].push(trimmedLine);
     }
   }
-  
+
   const styles = parseStyles(sections['v4+ styles'] || sections['v4 styles'] || []);
   const events = parseEvents(sections['events'] || [], styles);
-  
-  return events.map(event => ({
-    startTime: event.startTime,
-    endTime: event.endTime,
-    text: event.text
-  }));
+
+  return events.map(event => {
+    const style = getASSStyleForCue(event, styles);
+
+    // Map alignment
+    const alignment = (style.textAlign as 'left' | 'center' | 'right') || 'center';
+
+    // Check vertical alignment from ASS alignment value
+    // 1-3: Bottom, 4-6: Top (in some standards) or Mid, 7-9: Top
+    // 1,2,3 = Sub
+    // 4,5,6 = Mid
+    // 7,8,9 = Top
+    let verticalAlign: 'top' | 'middle' | 'bottom' = 'bottom';
+    const alignVal = styles.get(event.style)?.alignment || 2;
+    if (alignVal >= 4 && alignVal <= 6) verticalAlign = 'middle';
+    if (alignVal >= 7) verticalAlign = 'top';
+
+    const segmentStyle: any = {
+      ...style,
+      backgroundColor: 'transparent', // ASS subtitles usually have transparent background
+      // Add specific positioning if needed, ASS uses margins which is hard to map 1:1 to CSS without absolute positioning of the container
+    };
+
+    return {
+      startTime: event.startTime,
+      endTime: event.endTime,
+      text: event.text,
+      lines: [[{
+        text: event.text,
+        style: segmentStyle
+      }]],
+      alignment: alignment,
+      verticalAlign: verticalAlign
+    };
+  });
 };
 
 const parseStyles = (styleLines: string[]): Map<string, ASSStyle> => {
   const styles = new Map<string, ASSStyle>();
   let formatLine = '';
-  
+
   for (const line of styleLines) {
     if (line.startsWith('Format:')) {
       formatLine = line.substring(7).trim();
@@ -84,24 +113,24 @@ const parseStyles = (styleLines: string[]): Map<string, ASSStyle> => {
       }
     }
   }
-  
+
   return styles;
 };
 
 const parseStyleLine = (styleLine: string, formatLine: string): ASSStyle | null => {
   const values = styleLine.substring(6).split(',');
   const fields = formatLine.split(',').map(f => f.trim());
-  
+
   if (values.length !== fields.length) {
     return null;
   }
-  
+
   const style: Partial<ASSStyle> = {};
-  
+
   for (let i = 0; i < fields.length; i++) {
     const field = fields[i].toLowerCase();
     const value = values[i].trim();
-    
+
     switch (field) {
       case 'name':
         style.name = value;
@@ -178,14 +207,14 @@ const parseStyleLine = (styleLine: string, formatLine: string): ASSStyle | null 
         break;
     }
   }
-  
+
   return style as ASSStyle;
 };
 
 const parseEvents = (eventLines: string[], styles: Map<string, ASSStyle>): ASSEvent[] => {
   const events: ASSEvent[] = [];
   let formatLine = '';
-  
+
   for (const line of eventLines) {
     if (line.startsWith('Format:')) {
       formatLine = line.substring(7).trim();
@@ -196,24 +225,24 @@ const parseEvents = (eventLines: string[], styles: Map<string, ASSStyle>): ASSEv
       }
     }
   }
-  
+
   return events.sort((a, b) => a.startTime - b.startTime);
 };
 
 const parseEventLine = (eventLine: string, formatLine: string, styles: Map<string, ASSStyle>): ASSEvent | null => {
   const values = eventLine.substring(9).split(',');
   const fields = formatLine.split(',').map(f => f.trim());
-  
+
   if (values.length < fields.length) {
     return null;
   }
-  
+
   const event: Partial<ASSEvent> = {};
-  
+
   for (let i = 0; i < fields.length; i++) {
     const field = fields[i].toLowerCase();
     let value = i < values.length - 1 ? values[i].trim() : values.slice(i).join(',').trim();
-    
+
     switch (field) {
       case 'layer':
         event.layer = parseInt(value) || 0;
@@ -248,11 +277,11 @@ const parseEventLine = (eventLine: string, formatLine: string, styles: Map<strin
         break;
     }
   }
-  
+
   if (event.startTime !== undefined && event.endTime !== undefined && event.text) {
     return event as ASSEvent;
   }
-  
+
   return null;
 };
 
@@ -260,12 +289,12 @@ const parseASSTime = (timeStr: string): number => {
   // Format: H:MM:SS.CC (centiseconds)
   const match = timeStr.match(/(\d+):(\d{2}):(\d{2})\.(\d{2})/);
   if (!match) return 0;
-  
+
   const hours = parseInt(match[1]);
   const minutes = parseInt(match[2]);
   const seconds = parseInt(match[3]);
   const centiseconds = parseInt(match[4]);
-  
+
   return hours * 3600 + minutes * 60 + seconds + centiseconds / 100;
 };
 
@@ -281,7 +310,7 @@ const convertASSColor = (colorStr: string): string => {
       return `#${r}${g}${b}`;
     }
   }
-  
+
   // Try parsing as decimal
   const decimal = parseInt(colorStr);
   if (!isNaN(decimal)) {
@@ -291,7 +320,7 @@ const convertASSColor = (colorStr: string): string => {
     const r = hex.substring(4, 6);
     return `#${r}${g}${b}`;
   }
-  
+
   return '#ffffff';
 };
 
@@ -307,11 +336,11 @@ const processASSText = (text: string): string => {
 
 export const getASSStyleForCue = (event: ASSEvent, styles: Map<string, ASSStyle>): React.CSSProperties => {
   const style = styles.get(event.style) || styles.get('Default') || styles.values().next().value;
-  
+
   if (!style) {
     return {};
   }
-  
+
   return {
     fontFamily: style.fontName || 'Arial',
     fontSize: `${style.fontSize}px`,

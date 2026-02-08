@@ -479,3 +479,23 @@
 .serika-video-player-settings-select:focus-visible {
   outline: 1px solid var(--serika-primary-color, #8a2be2);
 }
+
+.serika-video-player-subtitle-no-background {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  pointer-events: none !important;
+  bottom: 0 !important;
+  /* Let positioning be handled by alignment/margin */
+  top: 0 !important;
+  left: 0 !important;
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* Default align bottom */
+}
+
+/* Allow interaction with inner elements if necessary? Usually ASS is non-interactive but maybe for Karaoke? No, usually pointer-events: none is safer. */

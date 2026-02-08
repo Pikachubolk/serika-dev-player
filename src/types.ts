@@ -110,6 +110,13 @@ export interface SubtitleStyle {
   textShadow?: string;
   letterSpacing?: string;
   opacity?: number;
+  transform?: string;
+  position?: 'absolute' | 'relative';
+  top?: string;
+  left?: string;
+  right?: string;
+  bottom?: string;
+  display?: string;
 }
 
 export interface SubtitleSegment {
@@ -124,6 +131,7 @@ export interface SubtitleCue {
   lines?: SubtitleSegment[][];
   alignment?: 'left' | 'center' | 'right';
   verticalAlign?: 'top' | 'middle' | 'bottom';
+  noBackground?: boolean;
 }
 
 export interface ParsedSubtitles {

@@ -12,7 +12,7 @@
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "serika-dev-player": "^1.0.5"
+    "serika-dev-player": "^1.0.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -148,7 +148,37 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Demo 3: Advanced Options Playground */}
+        {/* Demo 3: ASS/SSA Subtitles */}
+        <section className="space-y-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Advanced Substation Alpha (.ASS)</h2>
+              <p className="text-neutral-400">Rich text formatting, karaoke effects, and precise positioning.</p>
+            </div>
+            <div className="px-3 py-1 rounded bg-blue-500/10 text-blue-400 text-sm font-mono border border-blue-500/20">
+              Effect Subtitles
+            </div>
+          </div>
+
+          <div className="rounded-2xl overflow-hidden shadow-2xl shadow-blue-900/20 border border-white/10 bg-black aspect-video relative">
+            <VideoPlayer
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+              poster="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg"
+              width="100%"
+              height="100%"
+              subtitles={[
+                {
+                  src: "/subtitles/example.ass",
+                  label: "English (Effects)",
+                  language: "en",
+                  default: true
+                }
+              ]}
+            />
+          </div>
+        </section>
+
+        {/* Demo 4: Advanced Options Playground */}
         <section className="space-y-8 pt-10 border-t border-white/5">
           <div>
             <h2 className="text-3xl font-bold mb-2">Advanced Playground</h2>
