@@ -387,3 +387,35 @@
     bottom: 60px;
   }
 }
+
+
+.serika-video-player:focus-visible {
+  outline: 2px solid var(--serika-primary-color, #8a2be2);
+  outline-offset: 2px;
+}
+
+.serika-video-player-progress-tooltip {
+  position: absolute;
+  top: -34px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.serika-video-player-settings-select {
+  background: transparent;
+  color: var(--serika-text-color, white);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.serika-video-player-settings-select:focus-visible {
+  outline: 1px solid var(--serika-primary-color, #8a2be2);
+}
