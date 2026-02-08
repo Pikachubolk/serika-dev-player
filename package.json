@@ -1,6 +1,6 @@
 {
   "name": "serika-dev-player",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "description": "A beautiful purple-themed video player component for React with multi-language and subtitle support",
   "main": "dist/index.js",
