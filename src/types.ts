@@ -64,6 +64,12 @@ export interface SubtitleTrack {
   kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata';
 }
 
+export interface AudioTrackOption {
+  id: number;
+  label: string;
+  language?: string;
+}
+
 export interface VideoPlayerState {
   isPlaying: boolean;
   currentTime: number;
@@ -81,6 +87,8 @@ export interface VideoPlayerState {
   error: Error | null;
   isMiniPlayer: boolean;
   showSettings: boolean;
+  availableAudioTracks: AudioTrackOption[];
+  selectedAudioTrack: number;
 }
 
 export interface QualityLevel {
@@ -91,10 +99,31 @@ export interface QualityLevel {
   index: number;
 }
 
+export interface SubtitleStyle {
+  color?: string;
+  backgroundColor?: string;
+  fontFamily?: string;
+  fontSize?: string;
+  fontWeight?: 'normal' | 'bold';
+  fontStyle?: 'normal' | 'italic';
+  textDecoration?: string;
+  textShadow?: string;
+  letterSpacing?: string;
+  opacity?: number;
+}
+
+export interface SubtitleSegment {
+  text: string;
+  style?: SubtitleStyle;
+}
+
 export interface SubtitleCue {
   startTime: number;
   endTime: number;
   text: string;
+  lines?: SubtitleSegment[][];
+  alignment?: 'left' | 'center' | 'right';
+  verticalAlign?: 'top' | 'middle' | 'bottom';
 }
 
 export interface ParsedSubtitles {

@@ -16,6 +16,9 @@ export interface Translations {
   skipForward: string;
   skipBackward: string;
   keyboardShortcuts: string;
+  quality: string;
+  audioTrack: string;
+  auto: string;
 }
 
 export const translations: Record<string, Translations> = {
@@ -36,7 +39,10 @@ export const translations: Record<string, Translations> = {
     loading: 'Loading...',
     skipForward: 'Skip forward 10 seconds',
     skipBackward: 'Skip backward 10 seconds',
-    keyboardShortcuts: 'Keyboard shortcuts available'
+    keyboardShortcuts: 'Keyboard shortcuts available',
+    quality: 'Quality',
+    audioTrack: 'Audio Track',
+    auto: 'Auto'
   },
   es: {
     play: 'Reproducir',
@@ -55,7 +61,10 @@ export const translations: Record<string, Translations> = {
     loading: 'Cargando...',
     skipForward: 'Avanzar 10 segundos',
     skipBackward: 'Retroceder 10 segundos',
-    keyboardShortcuts: 'Atajos de teclado disponibles'
+    keyboardShortcuts: 'Atajos de teclado disponibles',
+    quality: 'Calidad',
+    audioTrack: 'Pista de audio',
+    auto: 'Auto'
   },
   fr: {
     play: 'Lire',
@@ -74,7 +83,10 @@ export const translations: Record<string, Translations> = {
     loading: 'Chargement...',
     skipForward: 'Avancer de 10 secondes',
     skipBackward: 'Reculer de 10 secondes',
-    keyboardShortcuts: 'Raccourcis clavier disponibles'
+    keyboardShortcuts: 'Raccourcis clavier disponibles',
+    quality: 'Qualité',
+    audioTrack: 'Piste audio',
+    auto: 'Auto'
   },
   de: {
     play: 'Abspielen',
@@ -93,7 +105,10 @@ export const translations: Record<string, Translations> = {
     loading: 'Laden...',
     skipForward: '10 Sekunden vorspulen',
     skipBackward: '10 Sekunden zurückspulen',
-    keyboardShortcuts: 'Tastenkürzel verfügbar'
+    keyboardShortcuts: 'Tastenkürzel verfügbar',
+    quality: 'Qualität',
+    audioTrack: 'Audiospur',
+    auto: 'Auto'
   },
   nl: {
     play: 'Afspelen',
@@ -112,7 +127,10 @@ export const translations: Record<string, Translations> = {
     loading: 'Laden...',
     skipForward: '10 seconden vooruitspoelen',
     skipBackward: '10 seconden terugspoelen',
-    keyboardShortcuts: 'Sneltoetsen beschikbaar'
+    keyboardShortcuts: 'Sneltoetsen beschikbaar',
+    quality: 'Kwaliteit',
+    audioTrack: 'Audiotrack',
+    auto: 'Auto'
   }
 };
 

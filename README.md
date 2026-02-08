@@ -6,10 +6,10 @@ A beautiful purple-themed video player component for React with multi-language a
 
 - 🎨 **Beautiful Purple Theme** - Modern gradient design with smooth animations
 - 🌍 **Multi-language Support** - Built-in support for English, Spanish, French, German, and Dutch
-- 📝 **Subtitle Support** - WebVTT and SRT subtitle parsing and display
+- 📝 **Subtitle Support** - Advanced styled subtitle parsing for WebVTT, SRT, ASS/SSA, YouTube YTT, and SRV3
 - 🎬 **Multiple Video Formats** - Support for MP4, WebM, MKV, HLS streams and more
 - 🎮 **Custom Controls** - Play/pause, volume, timeline scrubbing, fullscreen
-- ⚙️ **Settings Menu** - Playback speed and subtitle selection
+- ⚙️ **Settings Menu** - Playback speed, subtitles, adaptive quality, and audio track selection
 - 📱 **Responsive Design** - Works great on desktop and mobile
 - 🎯 **TypeScript Support** - Full TypeScript definitions included
 - ♿ **Accessible** - ARIA labels and keyboard navigation
@@ -81,7 +81,7 @@ function App() {
 
 ## Subtitle Support
 
-The player supports both WebVTT (.vtt) and SRT (.srt) subtitle files:
+The player supports WebVTT (.vtt), SRT (.srt), ASS/SSA (.ass/.ssa), YouTube YTT (.ytt), and SRV3 (.srv3) subtitle files with styled text rendering:
 
 ```tsx
 const subtitles = [
@@ -134,7 +134,7 @@ The player supports various video formats including:
 - **HLS** - HTTP Live Streaming (.m3u8)
 - **Other formats** supported by your browser
 
-For HLS streams, the player automatically uses HLS.js when needed:
+For HLS streams, the player automatically uses HLS.js when needed and exposes quality/audio-track selectors when multiple variants are available:
 
 ```tsx
 <VideoPlayer 
