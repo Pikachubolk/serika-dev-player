@@ -253,6 +253,39 @@
   word-wrap: break-word;
 }
 
+
+.serika-video-player-subtitle-line {
+  display: block;
+  white-space: pre-wrap;
+}
+
+.serika-video-player-subtitle-align-left {
+  text-align: left;
+}
+
+.serika-video-player-subtitle-align-center {
+  text-align: center;
+}
+
+.serika-video-player-subtitle-align-right {
+  text-align: right;
+}
+
+.serika-video-player-subtitle-vertical-top {
+  top: 24px;
+  bottom: auto;
+}
+
+.serika-video-player-subtitle-vertical-middle {
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+
+.serika-video-player-subtitle-vertical-bottom {
+  bottom: 80px;
+}
+
 .serika-video-player-loading {
   position: absolute;
   top: 50%;

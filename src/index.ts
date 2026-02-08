@@ -4,7 +4,8 @@ export type {
   VideoPlayerState, 
   SubtitleTrack, 
   SubtitleCue, 
-  ParsedSubtitles 
+  ParsedSubtitles,
+  AudioTrackOption 
 } from './types';
 export { getTranslation, translations } from './locales';
 export type { Translations } from './locales';
@@ -12,7 +13,9 @@ export {
   parseSubtitles, 
   parseWebVTT, 
   parseSRT, 
-  getCurrentSubtitle 
+  parseSubtitlesFromString,
+  getCurrentSubtitle,
+  getCurrentSubtitleCue 
 } from './utils/subtitleParser';
 export { 
   parseASS, 

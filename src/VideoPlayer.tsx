@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { VideoPlayerProps, VideoPlayerState, ParsedSubtitles } from './types';
-import { parseSubtitles, getCurrentSubtitle } from './utils/subtitleParser';
+import { AudioTrackOption, VideoPlayerProps, VideoPlayerState, ParsedSubtitles } from './types';
+import { parseSubtitles, getCurrentSubtitleCue } from './utils/subtitleParser';
 import { formatTime } from './utils/formatTime';
 import { loadVideo, VideoLoaderResult } from './utils/videoLoader';
 import { getTranslation } from './locales';
@@ -27,6 +27,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onEnded,
   onTimeUpdate,
   onLoadedMetadata,
+  onQualityChange,
   onError,
   className,
   style,
@@ -39,6 +40,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   ambientBlur = 60,
   enableKeyboardShortcuts = true
 }) => {
+  const getInitialSubtitleIndex = () => {
+    if (subtitles.length === 0) {
+      return null;
+    }
+
+    const defaultTrackIndex = subtitles.findIndex(subtitle => subtitle.default);
+    return defaultTrackIndex >= 0 ? defaultTrackIndex : 0;
+  };
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -53,7 +63,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     isMuted: muted,
     isFullscreen: false,
     showControls: true,
-    selectedSubtitle: subtitles.findIndex(sub => sub.default) || (subtitles.length > 0 ? 0 : null),
+    selectedSubtitle: getInitialSubtitleIndex(),
     buffered: null,
     playbackRate: 1,
     availableQualities: [],
@@ -61,7 +71,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     isLoading: true,
     error: null,
     isMiniPlayer: false,
-    showSettings: false
+    showSettings: false,
+    availableAudioTracks: [],
+    selectedAudioTrack: 0
   });
 
   const [parsedSubtitles, setParsedSubtitles] = useState<ParsedSubtitles>({});
@@ -137,6 +149,82 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       loadSubtitles();
     }
   }, [subtitles]);
+
+  useEffect(() => {
+    if (!videoLoader || videoLoader.type !== 'hls' || !videoLoader.player) {
+      setState(prev => ({
+        ...prev,
+        availableQualities: [],
+        selectedQuality: 'auto',
+        availableAudioTracks: [],
+        selectedAudioTrack: 0
+      }));
+      return;
+    }
+
+    const hls = videoLoader.player;
+    const events = hls.constructor?.Events ?? {};
+
+    const mapQualityLevels = () => {
+      const levels = (hls.levels || []) as Array<{ height?: number; width?: number; bitrate?: number }>;
+      const mapped = levels.map((level, index) => ({
+        index,
+        height: level.height || 0,
+        width: level.width,
+        bitrate: level.bitrate,
+        label: level.height ? `${level.height}p` : `Level ${index + 1}`
+      }));
+
+      setState(prev => ({
+        ...prev,
+        availableQualities: mapped,
+        selectedQuality: hls.currentLevel === -1 ? 'auto' : String(hls.currentLevel)
+      }));
+    };
+
+    const mapAudioTracks = () => {
+      const tracks = (hls.audioTracks || []) as Array<{ id?: number; name?: string; lang?: string }>;
+      const mapped: AudioTrackOption[] = tracks.map((track, index) => ({
+        id: track.id ?? index,
+        label: track.name || track.lang || `Track ${index + 1}`,
+        language: track.lang
+      }));
+
+      setState(prev => ({
+        ...prev,
+        availableAudioTracks: mapped,
+        selectedAudioTrack: hls.audioTrack ?? 0
+      }));
+    };
+
+    const handleManifestParsed = () => {
+      mapQualityLevels();
+      mapAudioTracks();
+    };
+
+    const handleLevelSwitched = (_event: unknown, data: { level: number }) => {
+      setState(prev => ({ ...prev, selectedQuality: data.level === -1 ? 'auto' : String(data.level) }));
+    };
+
+    const handleAudioSwitching = (_event: unknown, data: { id: number }) => {
+      setState(prev => ({ ...prev, selectedAudioTrack: data.id }));
+    };
+
+    if (events.MANIFEST_PARSED) hls.on(events.MANIFEST_PARSED, handleManifestParsed);
+    if (events.LEVEL_SWITCHED) hls.on(events.LEVEL_SWITCHED, handleLevelSwitched);
+    if (events.AUDIO_TRACKS_UPDATED) hls.on(events.AUDIO_TRACKS_UPDATED, mapAudioTracks);
+    if (events.AUDIO_TRACK_SWITCHED) hls.on(events.AUDIO_TRACK_SWITCHED, handleAudioSwitching);
+
+    mapQualityLevels();
+    mapAudioTracks();
+
+    return () => {
+      if (events.MANIFEST_PARSED) hls.off(events.MANIFEST_PARSED, handleManifestParsed);
+      if (events.LEVEL_SWITCHED) hls.off(events.LEVEL_SWITCHED, handleLevelSwitched);
+      if (events.AUDIO_TRACKS_UPDATED) hls.off(events.AUDIO_TRACKS_UPDATED, mapAudioTracks);
+      if (events.AUDIO_TRACK_SWITCHED) hls.off(events.AUDIO_TRACK_SWITCHED, handleAudioSwitching);
+    };
+  }, [videoLoader]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -350,6 +438,32 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }));
   };
 
+  const setQuality = (quality: string) => {
+    const hls = videoLoader?.type === 'hls' ? videoLoader.player : null;
+    if (!hls) return;
+
+    if (quality === 'auto') {
+      hls.currentLevel = -1;
+      setState(prev => ({ ...prev, selectedQuality: 'auto' }));
+      return;
+    }
+
+    const levelIndex = Number(quality);
+    if (Number.isNaN(levelIndex)) return;
+
+    hls.currentLevel = levelIndex;
+    setState(prev => ({ ...prev, selectedQuality: String(levelIndex) }));
+    onQualityChange?.(String(levelIndex));
+  };
+
+  const setAudioTrack = (trackId: number) => {
+    const hls = videoLoader?.type === 'hls' ? videoLoader.player : null;
+    if (!hls) return;
+
+    hls.audioTrack = trackId;
+    setState(prev => ({ ...prev, selectedAudioTrack: trackId }));
+  };
+
   const getPercentFromPointer = (target: HTMLDivElement, clientX: number) => {
     const rect = target.getBoundingClientRect();
     return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
@@ -373,12 +487,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     resetControlsTimeout();
   };
 
-  const getCurrentSubtitleText = () => {
+  const getCurrentSubtitleCueForTime = () => {
     if (state.selectedSubtitle === null || !parsedSubtitles[state.selectedSubtitle]) {
-      return '';
+      return null;
     }
 
-    return getCurrentSubtitle(parsedSubtitles[state.selectedSubtitle], state.currentTime);
+    return getCurrentSubtitleCue(parsedSubtitles[state.selectedSubtitle], state.currentTime);
   };
 
   const getBufferedPercent = () => {
@@ -419,7 +533,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     containerRef as React.RefObject<HTMLElement>
   );
 
-  const currentSubtitleText = getCurrentSubtitleText();
+  const currentSubtitleCue = getCurrentSubtitleCueForTime();
 
   return (
     <div
@@ -472,7 +586,24 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </button>
         )}
 
-        {currentSubtitleText && <div className="serika-video-player-subtitle-display">{currentSubtitleText}</div>}
+        {currentSubtitleCue && (
+          <div
+            className={`serika-video-player-subtitle-display serika-video-player-subtitle-align-${currentSubtitleCue.alignment ?? 'center'} serika-video-player-subtitle-vertical-${currentSubtitleCue.verticalAlign ?? 'bottom'}`}
+          >
+            {(currentSubtitleCue.lines && currentSubtitleCue.lines.length > 0
+              ? currentSubtitleCue.lines
+              : [[{ text: currentSubtitleCue.text }]]
+            ).map((line, lineIndex) => (
+              <div key={`subtitle-line-${lineIndex}`} className="serika-video-player-subtitle-line">
+                {line.map((segment, segmentIndex) => (
+                  <span key={`subtitle-segment-${lineIndex}-${segmentIndex}`} style={segment.style}>
+                    {segment.text}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
 
         {controls && (
           <div className={`serika-video-player-controls ${!state.showControls ? 'serika-video-player-controls-hidden' : ''}`}>
@@ -539,6 +670,41 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         ))}
                       </select>
                     </div>
+
+                    {state.availableQualities.length > 0 && (
+                      <div className="serika-video-player-settings-item">
+                        <span>{t.quality}</span>
+                        <select
+                          value={state.selectedQuality}
+                          onChange={e => setQuality(e.target.value)}
+                          className="serika-video-player-settings-select"
+                        >
+                          <option value="auto">{t.auto}</option>
+                          {state.availableQualities.map(quality => (
+                            <option key={quality.index} value={quality.index}>
+                              {quality.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {state.availableAudioTracks.length > 1 && (
+                      <div className="serika-video-player-settings-item">
+                        <span>{t.audioTrack}</span>
+                        <select
+                          value={state.selectedAudioTrack}
+                          onChange={e => setAudioTrack(parseInt(e.target.value, 10))}
+                          className="serika-video-player-settings-select"
+                        >
+                          {state.availableAudioTracks.map(track => (
+                            <option key={`audio-track-${track.id}`} value={track.id}>
+                              {track.label}{track.language ? ` (${track.language})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
 
                     <div className="serika-video-player-settings-item">
                       <span>{t.subtitles}</span>
